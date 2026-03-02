@@ -1,0 +1,235 @@
+# =============================================================================
+# IDS Evaluation Framework - Example Configuration
+# =============================================================================
+# This file serves as a template for creating your own evaluation configurations.
+# Copy this file and adjust the settings according to your needs.
+#
+# The configuration is divided into three main sections:
+#   1. general     - Global settings (paths, seed, etc.)
+#   2. data_manager - Dataset loading, preprocessing, and splitting
+#   3. evaluation   - IDS models, metrics, and adversarial attacks
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# GENERAL SETTINGS
+# -----------------------------------------------------------------------------
+general:
+    # Name and description for this evaluation run (used in reports)
+    name: "Example IDS Evaluation"
+    description: "An example configuration demonstrating all available options."
+
+    # Random seed for reproducibility
+    seed: 42
+
+    # Output paths (relative to working directory)
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+
+    # Plugin paths (optional)
+    # plugin_ids_path: "plugin_ids/"
+    # plugin_static_metric_path: "plugin_static_metric/"
+    # plugin_runtime_metric_path: "plugin_runtime_metric/"
+    # plugin_adversarial_path: "plugin_adversarial/"
+
+# -----------------------------------------------------------------------------
+# DATA MANAGER - Dataset Loading, Preprocessing, and Splitting
+# -----------------------------------------------------------------------------
+data_manager:
+    # -------------------------
+    # DATASET CONFIGURATION
+    # -------------------------
+    # You can define one or more datasets. Each dataset can have multiple subfiles.
+    dataset:
+        -   name: "MyDataset"
+
+            # --- CONSTRUCTOR: How to load the data ---
+            constructor:
+                # Base path to the dataset directory
+                base_path: "raw_data/my_dataset/"
+
+                # List of files to load from this dataset
+                # There are two modes for labeling:
+                #   1. Static mode: All rows in a file get the same label (attack_type)
+                #   2. Dynamic mode: Labels are read from a column in the CSV (label_column)
+                subfiles:
+                    # --- Example: Static mode (all rows = same label) ---
+                    -   name: "BenignTraffic"
+                        subpath: "benign/traffic.csv"
+                        attack_type: "benign"      # Label for all rows in this file
+                        is_benign: true            # Mark as benign (target_label = 0)
+
+                    -   name: "DDoSAttack"
+                        subpath: "attacks/ddos.csv"
+                        attack_type: "ddos"        # Label for all rows in this file
+                        # is_benign defaults to false (target_label = 1)
+
+                    # --- Example: Dynamic mode (labels from CSV column) ---
+                    -   name: "MixedTraffic"
+                        subpath: "mixed/all_traffic.csv"
+                        label_column: "Label"           # Column containing attack labels
+                        benign_labels: [ "BENIGN" ]       # Which values are considered benign
+                        # Optional: Map original labels to normalized names
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "FTP-Patator": "bruteforce"
+                            "SSH-Patator": "bruteforce"
+                            "DoS Hulk": "dos"
+
+                # Optional: Rename columns for cross-dataset compatibility
+                # feature_mapping:
+                #   "old_column_name": "new_column_name"
+
+            # --- PREPROCESSING: How to prepare the data ---
+            # Available methods:
+            #   - remove_rows: Remove specified columns
+            #   - remove_nan_rows: Remove rows containing NaN values
+            #   - label: Encode categorical columns to numeric (LabelEncoder)
+            #   - one_hot: One-hot encode categorical columns
+            #   - min_max: Normalize numeric columns to [0, 1] range
+            preprocess:
+                # Remove columns that shouldn't be used as features
+                -   method: "remove_rows"
+                    columns: [ "Timestamp", "Flow ID", "Source IP", "Destination IP" , "Label" ]
+
+                # Remove rows with missing values
+                -   method: "remove_nan_rows"
+
+                # Encode any remaining categorical columns
+                -   method: "label"
+                    columns: [ ]          # Empty = use auto_columns
+                    auto_columns: true   # Automatically detect categorical columns
+
+                # Normalize numeric features to [0, 1]
+                -   method: "min_max"
+                    columns: [ ]
+                    auto_columns: true
+
+            # --- FEATURE SELECTION: Reduce dimensionality ---
+            # Available methods:
+            #   - none: No feature selection
+            #   - logistic_regression: L1/L2 regularization-based selection
+            #   - variance_threshold: Remove low-variance features
+            #   - correlation_threshold: Remove highly correlated features
+            feature_selector:
+                method: none
+                # Example with logistic regression:
+                # method: logistic_regression
+                # params:
+                #   penalty: l2
+                #   C: 1.0
+                #   solver: lbfgs
+                #   max_iter: 500
+                #   threshold: 0.01
+
+    # -------------------------
+    # SPLIT CONFIGURATION
+    # -------------------------
+    # How to split the data into training and test sets
+    split:
+        # Available methods:
+        #   - intra: Random split within each dataset
+        #   - cross_dataset: Train on some datasets, test on others
+        #   - k_fold_split: K-fold cross-validation
+        #   - timestamp: Time-based split (requires timestamp column)
+        method: "intra"
+
+        # Fraction of data to use for testing (0 < test_size < 1)
+        test_size: 0.3
+
+        # Target column for classification
+        # Options:
+        #   - target_label: Binary classification (benign=0, attack=1)
+        #   - attack_category: Multi-class classification (one class per attack type)
+        # The option should match with is_multiclass in evaluation.general below
+        target_column: "target_label"
+
+        # Method-specific parameters
+        # params:
+        #   # For k_fold_split:
+        #   n_splits: 5
+        #
+        #   # For timestamp:
+        #   timestamp_column: "Timestamp"
+
+# -----------------------------------------------------------------------------
+# EVALUATION - Models, Metrics, and Adversarial Attacks
+# -----------------------------------------------------------------------------
+evaluation:
+    general:
+        # Set to true for multi-class classification, false for binary
+        is_multiclass: false
+
+    # -------------------------
+    # IDS MODELS TO EVALUATE
+    # -------------------------
+    # Anomaly-based models (ML/DL models)
+    anomaly_models:
+        -   plugin: "ml_decision_tree"
+            save_model: true           # Save trained model for later use
+            params:
+                random_state: 42
+                max_depth: 10
+
+    # -------------------------
+    # STATIC METRICS
+    # -------------------------
+    static_metrics:
+        -   plugin: "accuracy_metric"
+        -   plugin: "f1_score_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "mttd_metric"
+        -   plugin: "fppv_metric"
+        -   plugin: "retrain_cost_metric"
+        -   plugin: "time_per_sample_metric"
+
+    # -------------------------
+    # RUNTIME METRICS
+    # -------------------------
+    # Collected during training/inference
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+            params:
+                interval: 0.01    # Sampling interval in seconds
+        -   plugin: "ram_usage_metric"
+        -   plugin: "emission_metric"   # CO2 emissions (requires codecarbon)
+
+    # -------------------------
+    # ADVERSARIAL ATTACKS (optional)
+    # -------------------------
+    # Test model robustness against adversarial samples
+    adversarial_attacks:
+        enabled: false           # Set to true to enable
+        use_surrogate: true      # Use surrogate model for tree-based classifiers
+        surrogate_epochs: 25
+
+        attacks:
+            # Gaussian noise perturbation
+            -   plugin: "noise_attack"
+                params:
+                    std: 0.01         # Standard deviation of noise
+                    clip_min: 0.0
+                    clip_max: 1.0
+
+            # FGSM attack (requires differentiable model or surrogate)
+            # - plugin: "fgsm_attack"
+            #   params:
+            #     eps: 0.1          # Perturbation budget
+            #     clip_min: 0.0
+            #     clip_max: 1.0
+
+            # Junk data injection
+            # - plugin: "junk_data_attack"
+            #   params:
+            #     target_features:
+            #       - "Total Length of Fwd Packets"
+            #       - "Total Length of Bwd Packets"
+            #     mode: "constant"   # "constant", "random", or "percentage"
+            #     amount: 512

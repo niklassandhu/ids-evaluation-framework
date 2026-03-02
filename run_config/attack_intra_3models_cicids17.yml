@@ -1,0 +1,182 @@
+general:
+    name: "Adversarial Evaluation of DT, TB, DNN on CICIDS2017"
+    description: "Evaluation of Decision Tree, Tree-Based IDS and DNN based IDS on CICIDS2017 dataset with adversarial attacks."
+    seed: 42
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+
+data_manager:
+    dataset:
+        -   name: "CICIDS2017"
+            constructor:
+                base_path: "raw_data/cic_ids_2017_flow/"
+                subfiles:
+                    -   name: "Monday-WorkingHours"
+                        subpath: "Monday-WorkingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                    -   name: "Tuesday-WorkingHours"
+                        subpath: "Tuesday-WorkingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "FTP-Patator": "Brute-Force"
+                            "SSH-Patator": "Brute-Force"
+                    -   name: "Wednesday-WorkingHours"
+                        subpath: "Wednesday-workingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "DoS slowloris": "DoS"
+                            "DoS Slowhttptest": "DoS"
+                            "DoS Hulk": "DoS"
+                            "DoS GoldenEye": "DoS"
+                            "Heartbleed": "DoS"
+                    -   name: "Thursday-Morning-WebAttacks"
+                        subpath: "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Web Attack Brute Force": "Web-Attack"
+                            "Web Attack Sql Injection": "Web-Attack"
+                            "Web Attack XSS": "Web-Attack"
+                    -   name: "Thursday-Afternoon-Infiltration"
+                        subpath: "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Infiltration": "Infiltration"
+                    -   name: "Friday-Morning-Bot"
+                        subpath: "Friday-WorkingHours-Morning.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Bot": "Botnet"
+                    -   name: "Friday-Afternoon-PortScan"
+                        subpath: "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "PortScan": "Port-Scan"
+                    -   name: "Friday-Afternoon-DDoS"
+                        subpath: "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "DDoS": "DoS"
+            preprocess:
+                -   method: "remove_rows"
+                    columns: [ "Label" ]
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+
+            feature_selector:
+                method: none
+
+    split:
+        method: "intra"
+        test_size: 0.3
+        target_column: "target_label"
+
+evaluation:
+    general:
+        is_multiclass: false
+
+    anomaly_models:
+        -   plugin: "ml_tree_based_ids"
+            save_model: true
+            params:
+                random_state: 42
+
+        -   plugin: "ml_decision_tree"
+            save_model: true
+            params:
+                random_state: 42
+
+        -   plugin: "ml_ids_dnn"
+            save_model: true
+            params:
+                epochs: 100
+                batch_size: 256
+                dropout_rate: 0.01
+                learning_rate: 0.01
+                layer_sizes: [ 1024, 768, 512 ]
+                verbose: 1
+                validation_split: 0.1
+
+    static_metrics:
+        -   plugin: "accuracy_metric"
+        -   plugin: "f1_score_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "mttd_metric"
+        -   plugin: "fppv_metric"
+        -   plugin: "retrain_cost_metric"
+        -   plugin: "time_per_sample_metric"
+
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+            params:
+                interval: 0.01
+        -   plugin: "ram_usage_metric"
+        -   plugin: "emission_metric"
+
+    adversarial_attacks:
+        enabled: true
+        use_surrogate: true
+        surrogate_epochs: 20
+        attacks:
+            -   plugin: "junk_data_attack"
+                params:
+                    target_features:
+                        - "Total Length of Fwd Packets"
+                        - "Total Length of Bwd Packets"
+                        - "Fwd Packet Length Mean"
+                    amount: 1024.0
+                    mode: "constant"
+            -   plugin: "junk_data_attack"
+                params:
+                    target_features:
+                        - "Total Length of Fwd Packets"
+                        - "Total Length of Bwd Packets"
+                        - "Fwd Packet Length Mean"
+                    mode: "random"
+                    random_min: 0.0
+                    random_max: 1024.0
+            -   plugin: "junk_data_attack"
+                params:
+                    target_features:
+                        - "Total Length of Fwd Packets"
+                        - "Total Length of Bwd Packets"
+                        - "Fwd Packet Length Mean"
+                    mode: "percentage"
+                    percentage: 0.01
+            -   plugin: "noise_attack"
+                params:
+                    std: 0.001
+                    clip_min: 0.0
+                    clip_max: 1.0
+
+            -   plugin: "fgsm_attack"
+                params:
+                    eps: 0.2
+                    clip_min: 0.0
+                    clip_max: 1.0

@@ -1,0 +1,152 @@
+general:
+    name: "Adversarial Evaluation of DT, TB, DNN on CIC-IoT-DataSense-2025"
+    description: "Evaluation of Decision Tree, Tree-Based IDS and DNN based IDS on CIC-IoT-DataSense-2025 dataset with adversarial attacks."
+    seed: 42
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+
+data_manager:
+    dataset:
+        -   name: "CIC-IoT-DataSense-2025"
+            constructor:
+                base_path: "raw_data/cic_iot_datasense_2025/"
+                subfiles:
+                    -   name: "DataSense-2025-All"
+                        subpath: "."
+                        label_column: "label2"
+                        benign_labels: [ "benign" ]
+                        label_mapping:
+                            "benign": "Benign"
+                            "bruteforce": "Brute-Force"
+                            "ddos": "DoS"
+                            "dos": "DoS"
+                            "malware": "Botnet"
+                            "mitm": "Spoofing"
+                            "recon": "Reconnaissance"
+                            "web": "Web-Attack"
+            preprocess:
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "remove_rows"
+                    columns:
+                        - "device_name"
+                        - "device_mac"
+                        - "label_full"
+                        - "label1"
+                        - "label2"
+                        - "label3"
+                        - "label4"
+                        - "timestamp"
+                        - "timestamp_start"
+                        - "timestamp_end"
+                        - "network_ips_all"
+                        - "network_ips_all_count"
+                        - "network_ips_dst"
+                        - "network_ips_dst_count"
+                        - "network_ips_src"
+                        - "network_ips_src_count"
+                        - "network_macs_all"
+                        - "network_macs_all_count"
+                        - "network_macs_dst"
+                        - "network_macs_dst_count"
+                        - "network_macs_src"
+                        - "network_macs_src_count"
+            feature_selector:
+                method: none
+
+    split:
+        method: "intra"
+        test_size: 0.3
+        target_column: "target_label"
+
+evaluation:
+    general:
+        is_multiclass: false
+
+    anomaly_models:
+        -   plugin: "ml_tree_based_ids"
+            save_model: true
+            params:
+                random_state: 42
+
+        -   plugin: "ml_decision_tree"
+            save_model: true
+            params:
+                random_state: 42
+
+        -   plugin: "ml_ids_dnn"
+            save_model: true
+            params:
+                epochs: 10
+                batch_size: 256
+                dropout_rate: 0.01
+                learning_rate: 0.01
+                layer_sizes: [ 1024, 768, 512 ]
+                verbose: 1
+                validation_split: 0.1
+
+    static_metrics:
+        -   plugin: "accuracy_metric"
+        -   plugin: "f1_score_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "mttd_metric"
+        -   plugin: "fppv_metric"
+        -   plugin: "retrain_cost_metric"
+        -   plugin: "time_per_sample_metric"
+
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+            params:
+                interval: 0.01
+        -   plugin: "ram_usage_metric"
+        -   plugin: "emission_metric"
+
+
+    adversarial_attacks:
+        enabled: true
+        use_surrogate: true  # Use surrogate models for tree-based classifiers
+        surrogate_epochs: 20
+        attacks:
+            -   plugin: "junk_data_attack"
+                params:
+                    target_features:
+                        - "network_packet-size_avg"
+                        - "network_payload-length_avg"
+                    amount: 1024.0
+                    mode: "constant"
+            -   plugin: "junk_data_attack"
+                params:
+                    target_features:
+                        - "network_packet-size_avg"
+                        - "network_payload-length_avg"
+                    mode: "random"
+                    random_min: 0.0
+                    random_max: 1024.0
+            -   plugin: "junk_data_attack"
+                params:
+                    target_features:
+                        - "network_packet-size_avg"
+                        - "network_payload-length_avg"
+                    mode: "percentage"
+                    percentage: 0.01
+            -   plugin: "noise_attack"
+                params:
+                    std: 0.001       # Standard deviation of noise
+                    clip_min: 0.0    # Min value after perturbation
+                    clip_max: 1.0    # Max value after perturbation
+
+            -   plugin: "fgsm_attack"
+                params:
+                    eps: 0.2           # Perturbation budget
+                    clip_min: 0.0
+                    clip_max: 1.0

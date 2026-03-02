@@ -1,0 +1,115 @@
+general:
+    name: "DNN IDS and DT on KDD Cup 99 - Intra Dataset Split"
+    description: "Evaluation of DT and DNN based IDS on KDD Cup 99 dataset. Paper: Evaluating Shallow and Deep Neural Networks for Network Intrusion Detection Systems in Cyber Security (Vigneswaran et al., ICCCNT)"
+    seed: 42
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+
+data_manager:
+    dataset:
+        -   name: "KDDCup99"
+            constructor:
+                base_path: "raw_data/kddcup99/"
+                subfiles:
+                    # KDD Cup 1999 dataset with 41 features
+                    # Attack categories: DoS, R2L, U2R, Probe
+                    # benign: "normal."
+                    -   name: "kddcup_data"
+                        subpath: "kddcup.data-1.csv"
+                        label_column: "label"
+                        benign_labels: [ "normal." ]
+                        # Map all attack types to their categories
+                        label_mapping:
+                            # Normal traffic
+                            "normal.": "normal"
+                            # DoS attacks
+                            "back.": "DoS"
+                            "land.": "DoS"
+                            "neptune.": "DoS"
+                            "pod.": "DoS"
+                            "smurf.": "DoS"
+                            "teardrop.": "DoS"
+                            # R2L attacks (Remote to Local)
+                            "ftp_write.": "R2L"
+                            "guess_passwd.": "R2L"
+                            "imap.": "R2L"
+                            "multihop.": "R2L"
+                            "phf.": "R2L"
+                            "spy.": "R2L"
+                            "warezclient.": "R2L"
+                            "warezmaster.": "R2L"
+                            # U2R attacks (User to Root)
+                            "buffer_overflow.": "U2R"
+                            "loadmodule.": "U2R"
+                            "perl.": "U2R"
+                            "rootkit.": "U2R"
+                            # Probe attacks
+                            "ipsweep.": "Probe"
+                            "nmap.": "Probe"
+                            "portsweep.": "Probe"
+                            "satan.": "Probe"
+            preprocess:
+                -   method: "remove_rows"
+                    columns: [ "label" ]
+                -   method: "label"
+                    columns: [ "protocol_type", "service", "flag" ]
+                -   method: "min_max"
+                    auto_columns: true
+                    columns: [ ]
+
+            feature_selector:
+                method: none
+
+    split:
+        method: "intra"
+        # Vigneswaran et al. uses a similar train / test split
+        test_size: 0.2
+        # Binary classification: 0 = normal, 1 = attack
+        target_column: "target_label"
+
+evaluation:
+    general:
+        is_multiclass: false
+
+    anomaly_models:
+        -   plugin: "ml_ids_dnn"
+            save_model: true
+            params:
+                # Hyperparameters from the paper
+                epochs: 100
+                batch_size: 256
+                dropout_rate: 0.01
+                learning_rate: 0.01
+                # Paper proposed that the best DNN was with 3 hidden layers - so we use that here
+                layer_sizes: [ 1024, 768, 512 ]
+                verbose: 1
+                validation_split: 0.1
+
+        -   plugin: "ml_decision_tree"
+            save_model: true
+            params:
+                random_state: 42
+
+    static_metrics:
+        -   plugin: "accuracy_metric"
+        -   plugin: "f1_score_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "mttd_metric"
+        -   plugin: "fppv_metric"
+        -   plugin: "retrain_cost_metric"
+        -   plugin: "time_per_sample_metric"
+
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+            params:
+                interval: 0.01
+        -   plugin: "ram_usage_metric"
+        -   plugin: "emission_metric"

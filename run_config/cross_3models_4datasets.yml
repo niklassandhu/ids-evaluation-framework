@@ -1,0 +1,276 @@
+general:
+    name: "CROSS-DATASET: DT, TB, DNN"
+    description: "Cross-dataset evaluation across CICIDS2017, CIC-IoT-2023, DataSense-2025, DIAD-2024"
+    seed: 42
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+
+data_manager:
+    dataset:
+        # ============================================================
+        # Dataset 1: CICIDS2017
+        # ============================================================
+        -   name: "CICIDS2017"
+            constructor:
+                base_path: "raw_data/cic_ids_2017_flow/"
+                feature_mapping:
+                    "Min Packet Length": "packet_length_min"
+                    "Max Packet Length": "packet_length_max"
+                    "Packet Length Mean": "packet_length_mean"
+                    "Packet Length Std": "packet_length_std"
+                    "Flow IAT Mean": "flow_iat_mean"
+                    "ACK Flag Count": "tcp_flag_ack_count"
+                    "FIN Flag Count": "tcp_flag_fin_count"
+                    "PSH Flag Count": "tcp_flag_psh_count"
+                    "RST Flag Count": "tcp_flag_rst_count"
+                    "SYN Flag Count": "tcp_flag_syn_count"
+                subfiles:
+                    -   name: "CICIDS2017-All"
+                        subpath: "."
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "Benign"
+                            "Bot": "Botnet"
+                            "DDoS": "DoS"
+                            "DoS GoldenEye": "DoS"
+                            "DoS Hulk": "DoS"
+                            "DoS Slowhttptest": "DoS"
+                            "DoS slowloris": "DoS"
+                            "FTP-Patator": "Brute-Force"
+                            "SSH-Patator": "Brute-Force"
+                            "Heartbleed": "DoS"
+                            "Infiltration": "Infiltration"
+                            "PortScan": "Reconnaissance"
+                            "Web Attack � Brute Force": "Web-Attack"
+                            "Web Attack � Sql Injection": "Web-Attack"
+                            "Web Attack � XSS": "Web-Attack"
+            preprocess:
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "min_max"
+                    auto_columns: true
+                    columns: [ ]
+            feature_selector:
+                method: none
+
+        # ============================================================
+        # Dataset 2: CIC-IoT-2023
+        # ============================================================
+        -   name: "CIC-IoT-2023"
+            constructor:
+                base_path: "raw_data/cic_iot_2023/"
+                feature_mapping:
+                    "Min": "packet_length_min"
+                    "Max": "packet_length_max"
+                    "AVG": "packet_length_mean"
+                    "Std": "packet_length_std"
+                    "IAT": "flow_iat_mean"
+                    "ack_flag_number": "tcp_flag_ack_count"
+                    "fin_flag_number": "tcp_flag_fin_count"
+                    "psh_flag_number": "tcp_flag_psh_count"
+                    "rst_flag_number": "tcp_flag_rst_count"
+                    "syn_flag_number": "tcp_flag_syn_count"
+                subfiles:
+                    -   name: "CIC-IoT-2023-All"
+                        subpath: "."
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "Benign"
+                            "BACKDOOR_MALWARE": "Malware"
+                            "BROWSERHIJACKING": "Web-Attack"
+                            "COMMANDINJECTION": "Web-Attack"
+                            "DDOS-ACK_FRAGMENTATION": "DoS"
+                            "DDOS-HTTP_FLOOD": "DoS"
+                            "DDOS-ICMP_FLOOD": "DoS"
+                            "DDOS-ICMP_FRAGMENTATION": "DoS"
+                            "DDOS-PSHACK_FLOOD": "DoS"
+                            "DDOS-RSTFINFLOOD": "DoS"
+                            "DDOS-SLOWLORIS": "DoS"
+                            "DDOS-SYNONYMOUSIP_FLOOD": "DoS"
+                            "DDOS-SYN_FLOOD": "DoS"
+                            "DDOS-TCP_FLOOD": "DoS"
+                            "DDOS-UDP_FLOOD": "DoS"
+                            "DDOS-UDP_FRAGMENTATION": "DoS"
+                            "DOS-HTTP_FLOOD": "DoS"
+                            "DOS-SYN_FLOOD": "DoS"
+                            "DOS-TCP_FLOOD": "DoS"
+                            "DOS-UDP_FLOOD": "DoS"
+                            "DICTIONARYBRUTEFORCE": "Brute-Force"
+                            "DNS_SPOOFING": "Spoofing"
+                            "MITM-ARPSPOOFING": "Spoofing"
+                            "MIRAI-GREETH_FLOOD": "Botnet"
+                            "MIRAI-GREIP_FLOOD": "Botnet"
+                            "MIRAI-UDPPLAIN": "Botnet"
+                            "RECON-HOSTDISCOVERY": "Reconnaissance"
+                            "RECON-OSSCAN": "Reconnaissance"
+                            "RECON-PINGSWEEP": "Reconnaissance"
+                            "RECON-PORTSCAN": "Reconnaissance"
+                            "VULNERABILITYSCAN": "Reconnaissance"
+                            "SQLINJECTION": "Web-Attack"
+                            "UPLOADING_ATTACK": "Web-Attack"
+                            "XSS": "Web-Attack"
+            preprocess:
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "min_max"
+                    auto_columns: true
+                    columns: [ ]
+            feature_selector:
+                method: none
+
+        # ============================================================
+        # Dataset 3: CIC-IoT-DataSense-2025
+        # ============================================================
+        -   name: "CIC-IoT-DataSense-2025"
+            constructor:
+                base_path: "raw_data/cic_iot_datasense_2025/"
+                feature_mapping:
+                    "network_packet-size_min": "packet_length_min"
+                    "network_packet-size_max": "packet_length_max"
+                    "network_packet-size_avg": "packet_length_mean"
+                    "network_packet-size_std_deviation": "packet_length_std"
+                    "network_time-delta_avg": "flow_iat_mean"
+                    "network_tcp-flags-ack_count": "tcp_flag_ack_count"
+                    "network_tcp-flags-fin_count": "tcp_flag_fin_count"
+                    "network_tcp-flags-psh_count": "tcp_flag_psh_count"
+                    "network_tcp-flags-rst_count": "tcp_flag_rst_count"
+                    "network_tcp-flags-syn_count": "tcp_flag_syn_count"
+                subfiles:
+                    -   name: "DataSense-2025-All"
+                        subpath: "."
+                        label_column: "label2"
+                        benign_labels: [ "benign" ]
+                        label_mapping:
+                            "benign": "Benign"
+                            "bruteforce": "Brute-Force"
+                            "ddos": "DoS"
+                            "dos": "DoS"
+                            "malware": "Botnet"
+                            "mitm": "Spoofing"
+                            "recon": "Reconnaissance"
+                            "web": "Web-Attack"
+            preprocess:
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "min_max"
+                    auto_columns: true
+                    columns: [ ]
+            feature_selector:
+                method: none
+
+        # ============================================================
+        # Dataset 4: CIC-IoT-DIAD-2024 (Flow)
+        # ============================================================
+        -   name: "CIC-IoT-DIAD-2024"
+            constructor:
+                base_path: "raw_data/cic_iot_diad_2024_flow/"
+                feature_mapping:
+                    "Packet Length Min": "packet_length_min"
+                    "Packet Length Max": "packet_length_max"
+                    "Packet Length Mean": "packet_length_mean"
+                    "Packet Length Std": "packet_length_std"
+                    "Flow IAT Mean": "flow_iat_mean"
+                    "ACK Flag Count": "tcp_flag_ack_count"
+                    "FIN Flag Count": "tcp_flag_fin_count"
+                    "PSH Flag Count": "tcp_flag_psh_count"
+                    "RST Flag Count": "tcp_flag_rst_count"
+                    "SYN Flag Count": "tcp_flag_syn_count"
+                subfiles:
+                    -   name: "DIAD-2024-Benign"
+                        subpath: "benign/"
+                        attack_type: "Benign"
+                        is_benign: true
+                    -   name: "DIAD-2024-DDoS"
+                        subpath: "ddos/"
+                        attack_type: "DoS"
+                    -   name: "DIAD-2024-DoS"
+                        subpath: "dos/"
+                        attack_type: "DoS"
+                    -   name: "DIAD-2024-Mirai"
+                        subpath: "mirai/"
+                        attack_type: "Botnet"
+                    -   name: "DIAD-2024-BruteForce"
+                        subpath: "bruteforce/"
+                        attack_type: "Brute-Force"
+                    -   name: "DIAD-2024-Recon"
+                        subpath: "recon_scan/"
+                        attack_type: "Reconnaissance"
+                    -   name: "DIAD-2024-Spoofing"
+                        subpath: "spoofing/"
+                        attack_type: "Spoofing"
+                    -   name: "DIAD-2024-Web"
+                        subpath: "web_attacks/"
+                        attack_type: "Web-Attack"
+            preprocess:
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "min_max"
+                    auto_columns: true
+                    columns: [ ]
+            feature_selector:
+                method: none
+
+    split:
+        method: "cross_dataset"
+        test_size: 0.3
+        target_column: "target_label"
+
+evaluation:
+    general:
+        is_multiclass: false
+
+    anomaly_models:
+        -   plugin: "ml_tree_based_ids"
+            save_model: true
+            params:
+                random_state: 42
+
+        -   plugin: "ml_decision_tree"
+            save_model: true
+            params:
+                random_state: 42
+
+        -   plugin: "ml_ids_dnn"
+            save_model: true
+            params:
+                epochs: 100
+                batch_size: 256
+                dropout_rate: 0.01
+                learning_rate: 0.01
+                layer_sizes: [ 1024, 768, 512 ]
+                verbose: 1
+                validation_split: 0.1
+
+    static_metrics:
+        -   plugin: "accuracy_metric"
+        -   plugin: "f1_score_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "mttd_metric"
+        -   plugin: "fppv_metric"
+        -   plugin: "retrain_cost_metric"
+        -   plugin: "time_per_sample_metric"
+
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+            params:
+                interval: 0.01
+        -   plugin: "ram_usage_metric"
+        -   plugin: "emission_metric"

@@ -1,0 +1,30 @@
+# Editor directories and files
+.idea/*
+.vscode/*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Project related
+.venv/
+*.egg-info/
+raw_data/*
+logs/*
+out/*
+
+# metrics artifacts
+powermetrics_log.txt
+
+# ignore all pycache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ignore external IDS
+external_ids/*
+
+# Environment configuration
+.env

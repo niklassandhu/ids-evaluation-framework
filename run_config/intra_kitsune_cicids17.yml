@@ -1,0 +1,161 @@
+general:
+    name: "Kitsune IDS Evaluation (Mirai and CICIDS17 Dataset)"
+    description: "Evaluation of Kitsune on Mirai botnet dataset from the original paper and CICIDS17 (Hesford et al.)."
+    seed: 42
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+
+data_manager:
+    dataset:
+        -   name: "CICIDS2017"
+            constructor:
+                base_path: "raw_data/cic_ids_2017_flow/"
+                subfiles:
+                    # Day 1: Monday - Only benign traffic
+                    -   name: "Monday-WorkingHours"
+                        subpath: "Monday-WorkingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                    # Day 2: Tuesday - Brute Force attacks (FTP-Patator, SSH-Patator)
+                    -   name: "Tuesday-WorkingHours"
+                        subpath: "Tuesday-WorkingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "FTP-Patator": "Brute-Force"
+                            "SSH-Patator": "Brute-Force"
+                    # Day 3: Wednesday - DoS attacks and Heartbleed
+                    -   name: "Wednesday-WorkingHours"
+                        subpath: "Wednesday-workingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "DoS slowloris": "DoS"
+                            "DoS Slowhttptest": "DoS"
+                            "DoS Hulk": "DoS"
+                            "DoS GoldenEye": "DoS"
+                            "Heartbleed": "DoS"
+                    # Day 4: Thursday Morning - Web Attacks (XSS, SQL Injection, Brute Force)
+                    -   name: "Thursday-Morning-WebAttacks"
+                        subpath: "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Web Attack � Brute Force": "Web-Attack"
+                            "Web Attack � Sql Injection": "Web-Attack"
+                            "Web Attack � XSS": "Web-Attack"
+                    # Day 4: Thursday Afternoon - Infiltration
+                    -   name: "Thursday-Afternoon-Infiltration"
+                        subpath: "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Infiltration": "Infiltration"
+                    # Day 5: Friday Morning - Botnet
+                    -   name: "Friday-Morning-Bot"
+                        subpath: "Friday-WorkingHours-Morning.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Bot": "Botnet"
+                    # Day 5: Friday Afternoon - PortScan
+                    -   name: "Friday-Afternoon-PortScan"
+                        subpath: "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "PortScan": "Port-Scan"
+                    # Day 5: Friday Afternoon - DDoS
+                    -   name: "Friday-Afternoon-DDoS"
+                        subpath: "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "DDoS": "DoS"
+            preprocess:
+                -   method: "remove_rows"
+                    columns: [ "Label" ]
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "min_max"
+                    auto_columns: true
+                    columns: [ ]
+
+            feature_selector:
+                method: none
+#        -   name: "Mirai-Kitsune"
+#            constructor:
+#                base_path: "raw_data/mirai_botnet/"
+#                subfiles:
+#                    -   name: "Mirai-Features"
+#                        subpath: "mirai_merged.csv"
+#                        label_column: "label"
+#                        benign_labels: [ "0" ]
+#                        label_mapping:
+#                            "0": "benign"
+#                            "1": "Mirai"
+#            preprocess:
+#                -   method: "remove_rows"
+#                    columns: [ "label" ]
+#                -   method: "remove_nan_rows"
+#
+#            feature_selector:
+#                method: none
+
+    split:
+        method: "intra"
+        test_size: 0.3
+        target_column: "target_label"
+
+evaluation:
+    general:
+        is_multiclass: false
+
+    anomaly_models:
+        -   plugin: "ml_kitsune"
+            save_model: true
+            params:
+                max_autoencoder_size: 10
+                FM_grace_period: 10000
+                AD_grace_period: 50000
+                learning_rate: 0.1
+                hidden_ratio: 0.75
+
+                threshold_method: "adaptive"
+                target_percentile: 80.0
+                mad_multiplier: 2.5
+
+    static_metrics:
+        -   plugin: "accuracy_metric"
+        -   plugin: "f1_score_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "mttd_metric"
+        -   plugin: "fppv_metric"
+        -   plugin: "retrain_cost_metric"
+        -   plugin: "time_per_sample_metric"
+
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+            params:
+                interval: 0.01
+        -   plugin: "ram_usage_metric"
+        -   plugin: "emission_metric"

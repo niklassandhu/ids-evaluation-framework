@@ -1,0 +1,19 @@
+services:
+  ids-eval:
+    image: niklassandhu/ids-eval-framework:latest
+    volumes:
+      # Input data directory
+      - ${DATA_DIR:-./data}:/data
+      # Output directories (separate mounts for different output types)
+      - ${REPORTS_DIR:-./out/reports}:/app/out/reports
+      - ${PROCESSED_DATA_DIR:-./out/processed_datasets}:/app/out/processed_datasets
+      - ${MODELS_DIR:-./out/saved_models}:/app/out/saved_models
+      # Configuration
+      - ${CONFIG_DIR:-./run_config}:/app/run_config
+      # Plugin directories (mount your own plugins here)
+      - ${PLUGIN_IDS_DIR:-./plugin_ids}:/app/plugin_ids
+      - ${PLUGIN_STATIC_METRIC_DIR:-./plugin_static_metric}:/app/plugin_static_metric
+      - ${PLUGIN_RUNTIME_METRIC_DIR:-./plugin_runtime_metric}:/app/plugin_runtime_metric
+      - ${PLUGIN_ADVERSARIAL_DIR:-./plugin_adversarial}:/app/plugin_adversarial
+    environment:
+      - PYTHONUNBUFFERED=1
