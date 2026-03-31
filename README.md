@@ -2,6 +2,28 @@
 
 A comprehensive, modular, and configurable framework for evaluating Machine Learning-based Intrusion Detection Systems (IDS).
 
+C- [IDS Evaluation Framework](#ids-evaluation-framework)
+- [IDS Evaluation Framework](#ids-evaluation-framework)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Native Installation](#native-installation)
+    - [Docker Installation](#docker-installation)
+  - [Quick Start](#quick-start)
+    - [1. Create a Configuration File](#1-create-a-configuration-file)
+    - [2. Prepare Your Data](#2-prepare-your-data)
+    - [3. Run Evaluation](#3-run-evaluation)
+  - [Usage](#usage)
+    - [CLI Commands](#cli-commands)
+    - [Evaluation Flags](#evaluation-flags)
+    - [Makefile Targets](#makefile-targets)
+  - [Configuration](#configuration)
+    - [Key Configuration Sections](#key-configuration-sections)
+  - [Output Structure](#output-structure)
+  - [Plugin Development](#plugin-development)
+  - [Development](#development)
+  - [License](#license)
+
 ## Features
 
 - **Modular Plugin Architecture**: Easily extend the framework with custom IDS models, metrics, and adversarial attacks
