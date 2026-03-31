@@ -2,9 +2,7 @@
 
 A comprehensive, modular, and configurable framework for evaluating Machine Learning-based Intrusion Detection Systems (IDS).
 
-## Table of Content
 - [IDS Evaluation Framework](#ids-evaluation-framework)
-  - [Table of Content](#table-of-content)
   - [Features](#features)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
