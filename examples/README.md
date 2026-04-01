@@ -2,7 +2,7 @@
 | -------- | --------- |
 | Decision Tree | Baseline Model |
 | DNN | [[1]](https://ieeexplore.ieee.org/document/8494096) |
-| Kitsune | [[2]](https://arxiv.org/abs/1802.09089)(Pre-Print) |
+| Kitsune | [[2]](https://arxiv.org/abs/1802.09089) (Pre-Print) |
 | Tree Based IDS | [[3]](https://ieeexplore.ieee.org/document/9013892) |
 
 ## Decision Tree 

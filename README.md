@@ -1,3 +1,4 @@
+![Python](https://img.shields.io/badge/python-3.13%2B-blue?logo=python&logoColor=white)
 # IDS Evaluation Framework
 
 A comprehensive, modular, and configurable framework for evaluating Machine Learning-based Intrusion Detection Systems (IDS).
