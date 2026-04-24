@@ -178,6 +178,10 @@ make lint       # Check code style
 make format     # Format code
 ```
 
+## BibTeX entry
+Please cite this project using the following bibtex entry:
+[![Generic badge](https://img.shields.io/badge/Peer%20Reviewed-No-red.svg)](https://shields.io/)
+
 ## License
 
 See [LICENSE](LICENSE) for details.
