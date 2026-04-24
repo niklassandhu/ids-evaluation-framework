@@ -351,13 +351,15 @@ class ResultsVisualizer:
                         fontsize=7,
                     )
 
+        ax.spines[['right', 'top']].set_visible(False)
         ax.set_xlabel("Model")
         ax.set_ylabel(ylabel)
         ax.set_title(title)
         ax.set_xticks(x)
         ax.set_xticklabels(models, rotation=20, ha="right")
         ax.legend(title="Metric", fontsize=7, loc="best")
-        ax.grid(axis="y", alpha=0.3)
+        #ax.grid(axis="y", alpha=0.3)
+        ax.grid(False)
 
         plt.tight_layout()
         plt.savefig(self.visual_dir / filename, dpi=150)
@@ -390,9 +392,11 @@ class ResultsVisualizer:
             ax=ax,
         )
 
+        ax.spines[['right', 'top']].set_visible(False)
         ax.set_xlabel("Test Dataset")
         ax.set_ylabel("Train Dataset")
         ax.set_title(title)
+        ax.grid(False)
 
         plt.tight_layout()
         plt.savefig(self.visual_dir / filename, dpi=150)
@@ -434,14 +438,16 @@ class ResultsVisualizer:
                         va="center",
                         fontsize=8,
                     )
-
+        
+        ax.spines[['right', 'top']].set_visible(False)
         ax.set_ylabel("Model")
         ax.set_xlabel("Value")
         ax.set_title(title)
         ax.set_yticks(y)
         ax.set_yticklabels(models)
         ax.legend(title="Metric", fontsize=8, loc="best")
-        ax.grid(axis="x", alpha=0.3)
+        # ax.grid(axis="x", alpha=0.3)
+        ax.grid(False)
 
         plt.tight_layout()
         plt.savefig(self.visual_dir / filename, dpi=150)
@@ -475,12 +481,14 @@ class ResultsVisualizer:
                 fontsize=9,
             )
 
+        ax.spines[['right', 'top']].set_visible(False)
         ax.set_ylabel("Model")
         ax.set_xlabel(xlabel)
         ax.set_title(title)
         ax.set_yticks(y)
         ax.set_yticklabels(labels)
-        ax.grid(axis="x", alpha=0.3)
+        #ax.grid(axis="x", alpha=0.3)
+        ax.grid(False)
 
         plt.tight_layout()
         plt.savefig(self.visual_dir / filename, dpi=150)
