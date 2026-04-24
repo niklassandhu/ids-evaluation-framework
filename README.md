@@ -181,7 +181,7 @@ make format     # Format code
 ## BibTeX entry
 Please cite this project using the following bibtex entry: <br>
 [![Generic badge](https://img.shields.io/badge/Peer%20Reviewed-No-red.svg)](https://shields.io/)
-```
+```bibtex
 @inproceedings{}
 ```
 ## License
