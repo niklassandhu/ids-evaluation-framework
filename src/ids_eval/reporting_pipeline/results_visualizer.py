@@ -350,7 +350,6 @@ class ResultsVisualizer:
                         va="bottom",
                         fontsize=7,
                     )
-
         ax.spines[['right', 'top']].set_visible(False)
         ax.set_xlabel("Model")
         ax.set_ylabel(ylabel)
@@ -391,7 +390,6 @@ class ResultsVisualizer:
             linewidths=0.5,
             ax=ax,
         )
-        
         ax.spines[['right', 'top']].set_visible(False)
         ax.set_xlabel("Test Dataset")
         ax.set_ylabel("Train Dataset")
@@ -438,7 +436,6 @@ class ResultsVisualizer:
                         va="center",
                         fontsize=8,
                     )
-        
         ax.spines[['right', 'top']].set_visible(False)
         ax.set_ylabel("Model")
         ax.set_xlabel("Value")
@@ -480,7 +477,6 @@ class ResultsVisualizer:
                 va="center",
                 fontsize=9,
             )
-
         ax.spines[['right', 'top']].set_visible(False)
         ax.set_ylabel("Model")
         ax.set_xlabel(xlabel)
