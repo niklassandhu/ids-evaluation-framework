@@ -391,7 +391,7 @@ class ResultsVisualizer:
             linewidths=0.5,
             ax=ax,
         )
-
+        
         ax.spines[['right', 'top']].set_visible(False)
         ax.set_xlabel("Test Dataset")
         ax.set_ylabel("Train Dataset")
