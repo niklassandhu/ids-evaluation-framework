@@ -10,6 +10,7 @@ data_manager:
     dataset:
         # ============================================================
         # Dataset 1: CICIDS2017
+		# https://www.unb.ca/cic/datasets/ids-2017.html
         # ============================================================
         -   name: "CICIDS2017"
             constructor:
@@ -59,6 +60,7 @@ data_manager:
 
         # ============================================================
         # Dataset 2: CIC-IoT-2023
+		# https://www.unb.ca/cic/datasets/iotdataset-2023.html
         # ============================================================
         -   name: "CIC-IoT-2023"
             constructor:
@@ -127,6 +129,7 @@ data_manager:
 
         # ============================================================
         # Dataset 3: CIC-IoT-DataSense-2025
+		# https://www.unb.ca/cic/datasets/iiot-dataset-2025.html
         # ============================================================
         -   name: "CIC-IoT-DataSense-2025"
             constructor:
@@ -169,6 +172,7 @@ data_manager:
 
         # ============================================================
         # Dataset 4: CIC-IoT-DIAD-2024 (Flow)
+		# https://www.unb.ca/cic/datasets/iot-diad-2024.html
         # ============================================================
         -   name: "CIC-IoT-DIAD-2024"
             constructor:
