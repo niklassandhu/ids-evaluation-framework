@@ -77,7 +77,7 @@ A pre-built Docker image is available on Docker Hub: `niklassandhu/ids-eval-fram
 Copy the example configuration and adjust it to your needs:
 
 ```bash
-cp run_config/example.config.yml run_config/my_config.yml
+cp examples/run_config/example.config.yml examples/run_config/my_config.yml
 ```
 
 ### 2. Prepare Your Data
