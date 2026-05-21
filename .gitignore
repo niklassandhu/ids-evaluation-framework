@@ -11,9 +11,10 @@ $RECYCLE.BIN/
 # Project related
 .venv/
 *.egg-info/
-raw_data/*
+examples/run_config/raw_data/*
 logs/*
-out/*
+examples/run_config/out/*
+examples/run_config/external_ids/*
 
 # metrics artifacts
 powermetrics_log.txt
