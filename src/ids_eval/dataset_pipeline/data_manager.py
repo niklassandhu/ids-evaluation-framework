@@ -29,17 +29,23 @@ class DataManager:
         self.logger.info(f"Constructed {len(datasets)} dataset(s).")
         gc.collect()
 
+        self.logger.info(f"[DEBUG] after construct: {[len(d) for d in datasets]}")
+
         # --- 2. Preprocessing ---
         preprocessor = DatasetPreprocessor(self.config)
         datasets = preprocessor.preprocess(datasets)
         self.logger.info("Preprocessing complete.")
         gc.collect()
 
+        self.logger.info(f"[DEBUG] after preprocess: {[len(d) for d in datasets]}")
+
         # --- 3. Feature Selection ---
         selector = FeatureSelector(self.config)
         datasets = selector.select_features(datasets)
         self.logger.info("Feature selection complete.")
         gc.collect()
+
+        self.logger.info(f"[DEBUG] after feature selection: {[len(d) for d in datasets]}")
 
         # --- 4. Data Splitting ---
         splitter = DatasetSplitter(self.config)

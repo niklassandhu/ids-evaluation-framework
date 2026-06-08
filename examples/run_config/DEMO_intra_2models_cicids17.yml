@@ -5,7 +5,9 @@ general:
     report_path: "out/reports/"
     processed_data_path: "out/processed_datasets/"
     model_store_path: "out/saved_models/"
-
+    plugin_runtime_metric_path: "../../plugin_runtime_metric/"
+    plugin_adversarial_path: "../../plugin_adversarial/"
+    plugin_static_metric_path: "../../plugin_static_metric/"
 data_manager:
     dataset:
         -   name: "CICIDS2017"
@@ -92,19 +94,15 @@ data_manager:
                 -   method: "min_max"
                     auto_columns: true
                     columns: [ ]
-
             feature_selector:
                 method: none
-
     split:
         method: "intra"
         test_size: 0.3
         target_column: "target_label"  # attack_category is multiclass
-
 evaluation:
     general:
         is_multiclass: false
-
     anomaly_models:
         -   plugin: "ml_decision_tree"
             save_model: true
@@ -114,7 +112,6 @@ evaluation:
             save_model: true
             params:
                 random_state: 42
-
     static_metrics:
         -   plugin: "accuracy_metric"
         -   plugin: "f1_score_metric"
@@ -129,7 +126,6 @@ evaluation:
         -   plugin: "fppv_metric"
         -   plugin: "retrain_cost_metric"
         -   plugin: "time_per_sample_metric"
-
     runtime_metrics:
         -   plugin: "time_metric"
         -   plugin: "cpu_load_metric"
