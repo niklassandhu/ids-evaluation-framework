@@ -37,7 +37,7 @@ jobs:
               run: uv tool install build
         
             - name: Build package
-              run: uv run python -m pyproject-build
+              run: uv run build
         
             - name: List dist
               run: ls -la dist
