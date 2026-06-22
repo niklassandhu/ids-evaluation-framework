@@ -36,6 +36,9 @@ jobs:
             - name: Install build
               run: uv tool install build
         
+            - name: Show venv
+              run: ls /home/runner/work/ids-evaluation-framework/ids-evaluation-framework/.venv
+
             - name: Build package
               run: uv run build
         
