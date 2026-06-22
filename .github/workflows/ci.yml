@@ -26,15 +26,21 @@ jobs:
             id-token: write
         steps:
             - uses: actions/checkout@v4
+
             - name: Install uv
               uses: astral-sh/setup-uv@v6
+
             - name: Set up Python (read from .python-version)
               run: uv python install
+        
             - name: Install build
-              run: uv pip install build
+              run: uv tool install build
+        
             - name: Build package
               run: uv run python -m build
+        
             - name: List dist
-              run: ls -la dist || true
+              run: ls -la dist
+        
             - name: Publish package distributions to PyPI
               uses: pypa/gh-action-pypi-publish@release/v1
