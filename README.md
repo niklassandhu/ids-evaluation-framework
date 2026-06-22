@@ -24,6 +24,9 @@ A comprehensive, modular, and configurable framework for evaluating Machine Lear
   - [Output Structure](#output-structure)
   - [Plugin Development](#plugin-development)
   - [Development](#development)
+- [Additional Information](#additional-information)
+  - [BibTeX entry](#bibtex-entry)
+  - [Creating Issues](#creating-issues)
   - [License](#license)
 
 ## Features
@@ -178,12 +181,20 @@ make lint       # Check code style
 make format     # Format code
 ```
 
+# Additional Information
+
 ## BibTeX entry
 Please cite this project using the following bibtex entry: <br>
 [![Generic badge](https://img.shields.io/badge/Peer%20Reviewed-No-red.svg)](https://shields.io/)
 ```bibtex
 @inproceedings{}
 ```
+
+## Creating Issues
+
+If you find any bugs, bad patterns, performance issues, etc. do not hesitate to open an issue. <br>
+Any new features which should be part of the evaluation has to be underlined by peer-reviewed publications. This counts for new examples as well. All examples are reproduced publications except baseline models. <br>
+
 ## License
 
 See [LICENSE](LICENSE) for details.
