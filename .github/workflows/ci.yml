@@ -33,7 +33,7 @@ jobs:
             - name: Install build
               run: uv pip install build
             - name: Build package
-              run: uvx --from build python -m build
+              run: uv run python -m build
             - name: List dist
               run: ls -la dist || true
             - name: Publish package distributions to PyPI
