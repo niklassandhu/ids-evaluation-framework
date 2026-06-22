@@ -1,3 +1,18 @@
+# How to create new Examples
+
+```
+run_config/             # All files needed to evaluate
+├── <config>.yml        # Example config yml
+├── raw_data/           # All datasets for evaluation
+└── <dataset_name>/     # Example dataset structure 
+    ├── <dataset>.csv   # Example dataset CSV
+├── plugin_ids/         # All Python scripts to be evaluated in a given yml
+└── <ml_model>.py       # Example Python script
+```
+
+
+# Current Examples
+
 | IDS Name | Reference |
 | -------- | --------- |
 | Decision Tree | Baseline Model |
