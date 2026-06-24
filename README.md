@@ -9,6 +9,7 @@ A comprehensive, modular, and configurable framework for evaluating Machine Lear
   - [Features](#features)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
+    - [Python Installation](#python-installation)
     - [Native Installation](#native-installation)
     - [Docker Installation](#docker-installation)
   - [Quick Start](#quick-start)
@@ -45,6 +46,12 @@ A comprehensive, modular, and configurable framework for evaluating Machine Lear
 
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended) or pip
+
+### Python Installation
+
+```
+pip3 install ids-evaluation-framework
+```
 
 ### Native Installation
 
