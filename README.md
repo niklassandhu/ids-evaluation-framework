@@ -201,6 +201,7 @@ Please cite this project using the following bibtex entry: <br>
 
 If you find any bugs, bad patterns, performance issues, etc. do not hesitate to open an issue. <br>
 Any new features which should be part of the evaluation has to be underlined by peer-reviewed publications. This counts for new examples as well. All examples are reproduced publications except baseline models. <br>
+If you want to write a publication for a new feature, fork this project and we will merge the pull request after acceptance.
 
 ## License
 
