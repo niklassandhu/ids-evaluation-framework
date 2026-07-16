@@ -29,15 +29,11 @@ class DataManager:
         self.logger.info(f"Constructed {len(datasets)} dataset(s).")
         gc.collect()
 
-        self.logger.info(f"[DEBUG] after construct: {[len(d) for d in datasets]}")
-
         # --- 2. Preprocessing ---
         preprocessor = DatasetPreprocessor(self.config)
         datasets = preprocessor.preprocess(datasets)
         self.logger.info("Preprocessing complete.")
         gc.collect()
-
-        self.logger.info(f"[DEBUG] after preprocess: {[len(d) for d in datasets]}")
 
         # --- 3. Feature Selection ---
         selector = FeatureSelector(self.config)
@@ -45,7 +41,6 @@ class DataManager:
         self.logger.info("Feature selection complete.")
         gc.collect()
 
-        self.logger.info(f"[DEBUG] after feature selection: {[len(d) for d in datasets]}")
 
         # --- 4. Data Splitting ---
         splitter = DatasetSplitter(self.config)
@@ -67,7 +62,6 @@ class DataManager:
         }
         analyser.report(all_metadata, datasets, splits)
         self.logger.info("Dataset analysis and reporting complete.")
-
         self.logger.info("Data preparation pipeline finished successfully.")
 
     def _save_processed_data(self, splits: list) -> None:
@@ -81,3 +75,12 @@ class DataManager:
         with open(file, "wb") as f:
             pickle.dump(splits, f)
         self.logger.info(f"Processed and split data saved to: {file}")
+
+    @staticmethod
+    def _strip_ids(split, gcfg):
+        if not gcfg.drop_id_columns_from_tabular:
+            return split
+        X_train, X_test, y_train, y_test = split
+        cols = [gcfg.src_col, gcfg.dst_col]
+        return (X_train.drop(columns=cols, errors="ignore"),
+                X_test.drop(columns=cols, errors="ignore"), y_train, y_test)

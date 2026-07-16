@@ -97,7 +97,6 @@ class DatasetPreprocessor:
                         raise ValueError(f"Unsupported normalization method {method}")
 
             preprocessed_datasets.append(processed_df)
-
         self.logger.info("All datasets have been preprocessed.")
         return preprocessed_datasets
 
@@ -173,7 +172,7 @@ class DatasetPreprocessor:
 
         for col in columns:
             le = LabelEncoder()
-            df[col] = df[col].fillna("MISSING").astype("string")
+            df[col] = df[col].astype("string")
             df[col] = le.fit_transform(df[col])
             self.encoders[col] = le
 

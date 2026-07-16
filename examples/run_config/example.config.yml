@@ -175,6 +175,10 @@ evaluation:
     # STATIC METRICS
     # -------------------------
     static_metrics:
+        # --- new metrics (Programmier-Praktikum) ---
+        -   plugin: "pr_auc_metric"                     # PR-AUC / Average Precision -- robust under class imbalance
+        -   plugin: "robustness_index_metric"           # area under the accuracy-vs-epsilon (FGSM) curve; needs the robustness sweep (see below)
+        # -------------------------------------------
         -   plugin: "accuracy_metric"
         -   plugin: "f1_score_metric"
         -   plugin: "precision_score_metric"
@@ -233,3 +237,19 @@ evaluation:
             #       - "Total Length of Bwd Packets"
             #     mode: "constant"   # "constant", "random", or "percentage"
             #     amount: 512
+
+    # -------------------------
+    # ROBUSTNESS SWEEP (epsilon sweep -> Robustness Index metric)
+    # -------------------------
+    # Re-runs the first specified attack for each epsilon magnitude (therefore the attack must respect eps!).
+    # The eps=0 anchor is prepended to get a clean baseline
+    robustness:
+        enabled: false           # set true to run the sweep and compute the RI
+        eps_values:              # if perturbation magnitudes are not specified, defaults will be used (see run_config.py)
+            - 0.001
+            - 0.01
+            - 0.02
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3

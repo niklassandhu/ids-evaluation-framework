@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import typer
 from rich.console import Console
 
 from ids_eval.version import __version__
+
+# Silence TensorFlow's C++ log spam (e.g. the benign "use_unbounded_threadpool"
+# NodeDef notice). Must be set before TensorFlow is first imported.
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
 
 app = typer.Typer(
     add_completion=True,

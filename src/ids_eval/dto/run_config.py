@@ -23,6 +23,11 @@ class GeneralConfig(BaseModel):
     plugin_runtime_metric_path: str = Field(
         default="plugin_runtime_metric/", description="Path to runtime metric collection plugins"
     )
+    eps_values: list[float] = Field(
+        default=[0.001, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3], # TODO: check if this is set as default and make it adjustable in the project settings
+        description="Pertubation magnitude list of epsilon for Robustness Index (max 0.3 magnitude)"
+    )
+
 
 
 class RunConfig(BaseModel):

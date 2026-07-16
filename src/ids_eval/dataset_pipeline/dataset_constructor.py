@@ -9,6 +9,7 @@ from ids_eval.dto.run_config import RunConfig
 from ids_eval.enumeration.internal_label import InternalLabel
 from ids_eval.exception.no_data_loaded import NoDataLoaded
 from ids_eval.exception.pcap_needs_conversion import PcapNeedsConversion
+from ids_eval.dataset_pipeline.dataset_time_window_labeler import TimeWindowLabeler
 
 
 class DatasetConstructor:
@@ -16,6 +17,8 @@ class DatasetConstructor:
         self.config: RunConfig = config
         self.metadata = {"sources": [], "steps": []}
         self.logger = logging.getLogger(__name__)
+        self.labeler: TimeWindowLabeler | None = None
+        self.nfstream = None
 
     def _load_single_file(self, file_path: str, use_pyarrow: bool = False) -> pd.DataFrame:
         _, extension = os.path.splitext(file_path)
@@ -25,12 +28,6 @@ class DatasetConstructor:
                     # PyArrow backend: faster loading and lower memory usage
                     df = pd.read_csv(file_path, engine="pyarrow", dtype_backend="pyarrow")
                     self.logger.debug(f"Loaded '{file_path}' using PyArrow backend")
-                except ImportError:
-                    self.logger.warning(
-                        "PyArrow not available, falling back to default pandas CSV reader. "
-                        "Install pyarrow for better performance: uv add pyarrow"
-                    )
-                    df = pd.read_csv(file_path, low_memory=False)
                 except Exception as e:
                     self.logger.warning(f"PyArrow loading failed ({e}), falling back to default pandas reader")
                     df = pd.read_csv(file_path, low_memory=False)
@@ -39,14 +36,59 @@ class DatasetConstructor:
         elif extension == ".parquet":
             df = pd.read_parquet(file_path)
         elif extension == ".pcap":
-            self.logger.error("PCAP file detected while importing dataset. Please convert it before proceeding.")
-            raise PcapNeedsConversion
+            df = self._load_pcap_file(file_path)
+            if df.empty:
+                self.logger.warning("No .pcap was selected.")
+                return df
+            if self.labeler:
+                self.logger.info("Applying time-window labeling.")
+                df = self.labeler.label(df)
         else:
             self.logger.warning(f"Unsupported file format: {extension}. Skipping file: {file_path}")
             return pd.DataFrame()
 
         df.columns = df.columns.str.strip()
         return df
+
+    def _load_pcap_file(self, file_path: str) -> pd.DataFrame:
+        """Ingest a PCAP into a per-flow DataFrame via nfstream."""
+        #only load nfstream's C engine when a pcap is really read
+        from nfstream import NFStreamer
+
+        file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+
+        self.logger.info(f"Loading PCAP '{file_path}' ({file_size_mb:.1f} MB) via nfstream")
+        streamer = NFStreamer(
+            source=file_path,
+            # --- FLOW LOGIK ---
+            idle_timeout= self.nfstream.idle_timeout,
+            active_timeout= self.nfstream.active_timeout,
+
+            # --- FEATURE LOGIK ---
+            statistical_analysis= self.nfstream.statistical_analysis,
+            splt_analysis= self.nfstream.splt_analysis,
+            n_dissections= self.nfstream.n_dissections,
+
+            # --- BYTE-DEFINITION ---
+            accounting_mode= self.nfstream.accounting_mode,
+
+            # --- PERFORMANCE ---
+            n_meters= self.nfstream.n_meters,
+            performance_report= self.nfstream.performance_report,
+
+            # --- TRAFFIC ---
+            decode_tunnels= self.nfstream.decode_tunnels,
+            bpf_filter= self.nfstream.bpf_filter,
+            snapshot_length= self.nfstream.snapshot_length,
+
+            # --- SYSTEM ---
+            system_visibility_mode= self.nfstream.system_visibility_mode
+        )
+        df = streamer.to_pandas()
+
+        self.logger.info(f"Extracted {len(df)} flows from '{file_path}'")
+        return df
+
 
     def _apply_label_column(self, df: pd.DataFrame, subfile: SubfileConfig) -> pd.DataFrame:
         """Extracts labels from a CSV column and sets attack_category and target_label."""
@@ -103,6 +145,15 @@ class DatasetConstructor:
         constructed_datasets = []
         for i, dataset in enumerate(config_datasets):
             self.logger.info(f"Constructing {dataset.name} dataset.")
+
+            self.labeler = TimeWindowLabeler(dataset.windows) if dataset.windows else None
+            self.nfstream = dataset.nfstream
+            if not dataset.windows and any(
+                subfile.subpath.endswith(".pcap") for subfile in dataset.constructor.subfiles
+            ):
+                self.logger.warning(
+                    f"Dataset '{dataset.name}' has pcap subfiles but no time windows for labeling. All extracted flows will be (BENIGN) per default."
+                )
 
             constructed_subfiles = []
             use_pyarrow = dataset.constructor.use_pyarrow

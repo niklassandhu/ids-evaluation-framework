@@ -9,7 +9,6 @@ A comprehensive, modular, and configurable framework for evaluating Machine Lear
   - [Features](#features)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
-    - [Python Installation](#python-installation)
     - [Native Installation](#native-installation)
     - [Docker Installation](#docker-installation)
   - [Quick Start](#quick-start)
@@ -25,10 +24,9 @@ A comprehensive, modular, and configurable framework for evaluating Machine Lear
   - [Output Structure](#output-structure)
   - [Plugin Development](#plugin-development)
   - [Development](#development)
-- [Additional Information](#additional-information)
-  - [BibTeX entry](#bibtex-entry)
-  - [Creating Issues](#creating-issues)
+  - [Tests](#tests)
   - [License](#license)
+  - [Programmier Praktikum](#programmier-praktikum)
 
 ## Features
 
@@ -47,12 +45,6 @@ A comprehensive, modular, and configurable framework for evaluating Machine Lear
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended) or pip
 
-### Python Installation
-
-```
-pip3 install ids-evaluation-framework
-```
-
 ### Native Installation
 
 ```bash
@@ -65,20 +57,17 @@ uv run ids-eval version
 
 ### Docker Installation
 
-* Official Docker Images (stable releases): https://hub.docker.com/r/niklassandhu/ids-eval-framework
-* Currently supported architectures for docker images are: arm64 (Raspberry Pi, Apple Silicon, ...), amd64 (AMD, Intel)
-
-
 ```bash
 # Configure environment variables
 cp .env.example .env
 # Edit .env to set your data paths
 
-# Run via Docker Compose
+# Build and run via Docker Compose
+docker compose build
 docker compose run --rm ids-eval version
 ```
 
-A pre-built Docker image is available on Docker Hub: `niklassandhu/ids-eval-framework:latest`
+The image is built locally from the provided `Dockerfile`.
 
 ## Quick Start
 
@@ -138,7 +127,7 @@ make help                                 # Show all available targets
 
 ## Configuration
 
-The framework uses YAML configuration files. See `run_config/example.config.yml` for a fully documented example.
+The framework uses YAML configuration files. See `examples/run_config/example.config.yml` for a fully documented example.
 
 ### Key Configuration Sections
 
@@ -188,7 +177,28 @@ make lint       # Check code style
 make format     # Format code
 ```
 
-# Additional Information
+## Tests
+
+The test suite lives in `tests/` and is run with pytest:
+
+```bash
+uv run pytest          # run all tests
+make test              # equivalent target
+```
+
+`tests/test_metrics.py` contains two tests that verify the mathematical
+correctness of two static metrics:
+
+| Test | Checks |
+|------|--------|
+| `test_pr_auc_average_precision` | PR-AUC (Average Precision) against a known reference value |
+| `test_robustness_index_normalized_area` | Robustness Index equals the normalized area under the accuracy–perturbation curve |
+
+Run a single test:
+
+```bash
+uv run pytest tests/test_metrics.py -k pr_auc
+```
 
 ## BibTeX entry
 Please cite this project using the following bibtex entry: <br>
@@ -196,13 +206,52 @@ Please cite this project using the following bibtex entry: <br>
 ```bibtex
 @inproceedings{}
 ```
-
-## Creating Issues
-
-If you find any bugs, bad patterns, performance issues, etc. do not hesitate to open an issue. <br>
-Any new features which should be part of the evaluation has to be underlined by peer-reviewed publications. This counts for new examples as well. All examples are reproduced publications except baseline models. <br>
-If you want to write a publication for a new feature, fork this project and we will merge the pull request after acceptance.
-
 ## License
 
 See [LICENSE](LICENSE) for details.
+
+## Programmier Praktikum
+
+This project was extended in the Programmier-Praktikum with a raw-pcap ingestion path
+(nfstream) and two metrics, the **PR-AUC** and the **Robustness
+Index (RI)** demonstrated on the **Apollon** MAB IDS.
+
+**Architecture** A layered plugin pipeline setup entirely by a YAML run-config:
+`dataset_pipeline` builds the dataset(s) (CSV, or pcap via NFStream + time-window labeling),
+`evaluation_pipeline` trains the IDS plugins and runs the adversarial/robustness sweep,
+`metrics_pipeline` computes the metrics. IDS models, metrics and attacks are swappable
+plugins resolved through the `registry` via an abstract class.
+
+Two example runs are provided and both evaluate **Apollon** (attacked via a trained surrogate)
+and report PR-AUC, the RI and further metrics under an FGSM sweep.
+
+**1. pcap run (single day).**
+[`examples/run_config/PP_EXAMPLE.yml`](examples/run_config/PP_EXAMPLE.yml) ingests the
+CICIDS2017 **Friday** capture directly from raw pcap via nfstream (+ time-window labeling):
+
+```bash
+uv run ids-eval dataset  examples/run_config/PP_EXAMPLE.yml
+uv run ids-eval evaluate examples/run_config/PP_EXAMPLE.yml
+```
+
+**2. full-dataset run (all days, CSV).**
+[`examples/run_config/PP_EXAMPLE_full.yml`](examples/run_config/PP_EXAMPLE_full.yml) runs on
+the **complete** CICIDS2017, **no** nfstream. The much larger
+sample gives more robust results than the friday pcap run:
+
+```bash
+uv run ids-eval dataset  examples/run_config/PP_EXAMPLE_full.yml
+uv run ids-eval evaluate examples/run_config/PP_EXAMPLE_full.yml
+```
+
+For further information to correctly configure the run please refer to
+[`examples/run_config/example.config.yml`](examples/run_config/example.config.yml).
+
+**Dataset.**
+- For run **1** download `Friday-WorkingHours.pcap`.
+- For run **2** download the full **`MachineLearningCVE`** / `GeneratedLabelledFlows` CSV set
+  (the whole labeled CICIDS2017).
+
+Both are available from the CIC-IDS2017 dataset
+(<https://www.unb.ca/cic/datasets/ids-2017.html>). Place the files in
+`raw_data/cic_ids_2017_flow/`, matching the `base_path`/`subpath` in each config.

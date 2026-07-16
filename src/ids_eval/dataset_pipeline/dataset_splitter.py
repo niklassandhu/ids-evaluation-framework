@@ -200,10 +200,11 @@ class DatasetSplitter:
         for df in datasets[1:]:
             common_columns = common_columns.intersection(set(df.columns))
 
-        result_columns = list(common_columns)
-        result_columns.extend(InternalLabel.__values__())
-        result_columns.append(target_column)
-        result_columns = list(set(result_columns))
+        #we need to make sure the order is deterministic
+        result_columns = sorted(common_columns)
+        for extra in InternalLabel.__values__() + [target_column]:
+            if extra not in result_columns:
+                result_columns.append(extra)
 
         filtered_datasets = [df[result_columns] for df in datasets]
 
