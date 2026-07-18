@@ -1,0 +1,158 @@
+# FULL run: Apollon (surrogate FGSM) on the COMPLETE CICIDS2017 dataset leads to less varianz between the runs
+
+general:
+    name: "FULL run (CSV; RI; PR-AUC; Apollon)"
+    description: "Apollon MAB IDS on the full CICIDS2017 (all pre-labeled ISCX CSVs), attacked via surrogate; evaluated with PR-AUC, the Robustness Index and further detection metrics under an FGSM sweep"
+    seed: 42
+    report_path: "out/reports/"
+    processed_data_path: "out/processed_datasets/"
+    model_store_path: "out/saved_models/"
+    # run this config with examples/run_config/ as the working directory.
+    # plugin_ids/ sits next to this file, the other plugin dirs are in the repo root.
+    plugin_static_metric_path: "../../plugin_static_metric/"
+    plugin_runtime_metric_path: "../../plugin_runtime_metric/"
+    plugin_adversarial_path: "../../plugin_adversarial/"
+
+data_manager:
+    dataset:
+        -   name: "CICIDS2017_full"
+            constructor:
+                base_path: "raw_data/cic_ids_2017_flow/"
+                subfiles:
+                    -   name: "Monday-WorkingHours"
+                        subpath: "Monday-WorkingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                    -   name: "Tuesday-WorkingHours"
+                        subpath: "Tuesday-WorkingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "FTP-Patator": "Brute-Force"
+                            "SSH-Patator": "Brute-Force"
+                    -   name: "Wednesday-WorkingHours"
+                        subpath: "Wednesday-workingHours.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "DoS slowloris": "DoS"
+                            "DoS Slowhttptest": "DoS"
+                            "DoS Hulk": "DoS"
+                            "DoS GoldenEye": "DoS"
+                            "Heartbleed": "DoS"
+                    -   name: "Thursday-Morning-WebAttacks"
+                        subpath: "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Web Attack � Brute Force": "Web-Attack"
+                            "Web Attack � Sql Injection": "Web-Attack"
+                            "Web Attack � XSS": "Web-Attack"
+                    -   name: "Thursday-Afternoon-Infiltration"
+                        subpath: "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Infiltration": "Infiltration"
+                    -   name: "Friday-Morning-Bot"
+                        subpath: "Friday-WorkingHours-Morning.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "Bot": "Botnet"
+                    -   name: "Friday-Afternoon-PortScan"
+                        subpath: "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "PortScan": "Port-Scan"
+                    -   name: "Friday-Afternoon-DDoS"
+                        subpath: "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv"
+                        label_column: "Label"
+                        benign_labels: [ "BENIGN" ]
+                        label_mapping:
+                            "BENIGN": "benign"
+                            "DDoS": "DoS"
+
+            preprocess:
+                -   method: "remove_rows"
+                    columns: [ "Label" ]
+                -   method: "remove_nan_rows"
+                -   method: "label"
+                    columns: [ ]
+                    auto_columns: true
+                -   method: "min_max"
+                    columns: [ ]
+                    auto_columns: true
+
+            feature_selector:
+                method: none
+
+    split:
+        method: "intra"
+        test_size: 0.3
+        target_column: "target_label"
+
+evaluation:
+    general:
+        is_multiclass: false
+
+    anomaly_models:
+        # Apollon (not differentiable) -> attacked via surrogate transfer
+        -   plugin: "apollon_ids"
+            save_model: true
+            params:
+                n_arms: 4                # RF/DT/MLP/LogReg (GaussianNB dropped! - it was the reason for approx. 0.5million misclassifications on whole CICIDS2017)
+                n_clusters: 2
+
+    static_metrics:
+        -   plugin: "pr_auc_metric"                     # ranks attack vs benign, imbalance-robust
+        -   plugin: "robustness_index_metric"           # area under the accuracy-vs-epsilon curve
+        -   plugin: "f1_score_metric"
+        -   plugin: "matthews_correlation_coefficient"
+        -   plugin: "confusion_matrix_metric"
+        -   plugin: "precision_score_metric"
+        -   plugin: "recall_score_metric"
+        -   plugin: "accuracy_metric"
+        -   plugin: "roc_auc_metric"
+        -   plugin: "roc_curve_metric"
+        -   plugin: "intrusion_detection_capability"
+        -   plugin: "fppv_metric"
+        -   plugin: "time_per_sample_metric"
+
+    runtime_metrics:
+        -   plugin: "time_metric"
+        -   plugin: "cpu_load_metric"
+        -   plugin: "ram_usage_metric"
+
+    adversarial_attacks:
+        enabled: true
+        # NOTE: Apollon draws Beta samples at inference -> its predictions (and thus the RI) are
+        # non-deterministic; a single RI value is one draw, not a stable estimate. See PP-EXAMPLE.yml.
+        use_surrogate: true
+        surrogate_epochs: 25
+        attacks:
+            -   plugin: "fgsm_attack"
+                params:
+                    eps: 0.1
+                    clip_min: 0.0
+                    clip_max: 1.0
+
+    robustness:
+        enabled: true
+        eps_values:
+            - 0.001
+            - 0.01
+            - 0.02
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3

@@ -14,6 +14,7 @@ from ids_eval.evaluation_pipeline.testing_evaluation import TestingEvaluation
 from ids_eval.evaluation_pipeline.training_evaluation import TrainingEvaluation
 from ids_eval.interface.abstract_ids_connector import AbstractIDSConnector
 from ids_eval.interface.abstract_runtime_metric import AbstractRuntimeMetric
+from ids_eval.adversarial_pipeline.robustness_sweep import RobustnessSweepRunner
 
 # A single split of data into training and testing sets
 Split = Tuple[DataFrame, DataFrame, Series, Series]
@@ -372,11 +373,52 @@ class MLEvaluationOrchestrator:
         ids_model, model_cfg = loaded_plugin
 
         adversarial_samples: dict[str, pd.DataFrame] | None = None
+        robustness_curve: list[dict[str, Any]] = []
         if self.adversarial_generator.is_enabled():
             self.logger.info(f"Generating adversarial samples for {model_cfg.plugin}...")
             adversarial_samples = self.adversarial_generator.generate_adversarial_samples(
                 x_test=x_test, y_test=y_test, ids_model=ids_model, x_train=x_train, y_train=y_train
             )
+
+        robustness_curve: list[dict[str, Any]] = []
+
+        if (
+            self.config.evaluation is not None
+            and self.config.evaluation.robustness is not None
+            and self.config.evaluation.robustness.enabled
+        ):
+            self.logger.info("Starting robustness sweep...")
+
+            sweep_runner = RobustnessSweepRunner(self.config.evaluation.robustness.eps_values)
+
+            #sweep made by the FIRST configured attack
+            sweep_plugin: str | None = None
+            attacks_cfg = self.config.evaluation.adversarial_attacks
+            if attacks_cfg is not None and attacks_cfg.attacks:
+                sweep_plugin = attacks_cfg.attacks[0].plugin
+
+            def generate_for_eps(eps: float) -> pd.DataFrame:
+                samples = self.adversarial_generator.generate_adversarial_samples(
+                    x_test=x_test,
+                    y_test=y_test,
+                    ids_model=ids_model,
+                    x_train=x_train,
+                    y_train=y_train,
+                    override_params={"eps": eps},
+                    only_plugin=sweep_plugin,
+                )
+                if not samples:
+                    raise RuntimeError("No adversarial samples were generated for the robustness sweep.")
+                return next(iter(samples.values()))
+
+            robustness_curve = sweep_runner.run(
+                y_true=y_test,
+                attack_generate=generate_for_eps,
+                predict_fn=lambda x_adv: ids_model.detect(x_adv)[0],
+                x_clean=x_test,
+            )
+
+        self.logger.info("Finished robustness sweep.")
 
         # Test model on clean and adversarial data
         clean_metrics, adv_metrics = tester.test_model(
@@ -420,6 +462,9 @@ class MLEvaluationOrchestrator:
                     "run_id": adv_run_id,
                 }
             )
+
+            if i == 0:
+                adv_metric["robustness_curve"] = robustness_curve
             all_test_metrics.append(adv_metric)
 
         return all_test_metrics
