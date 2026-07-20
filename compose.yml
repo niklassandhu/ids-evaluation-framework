@@ -1,6 +1,6 @@
 services:
   ids-eval:
-    image: niklassandhu/ids-eval-framework:latest
+    build: .
     volumes:
       # Input data directory
       - ${DATA_DIR:-./data}:/data

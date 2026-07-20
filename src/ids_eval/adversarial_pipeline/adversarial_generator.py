@@ -35,11 +35,10 @@ class AdversarialGenerator:
         ids_model: AbstractIDSConnector,
         x_train: pd.DataFrame | None = None,
         y_train: pd.Series | None = None,
+        override_params: dict[str, Any] | None = None,
+        only_plugin: str | None = None,
     ) -> dict[str, pd.DataFrame]:
-        """
-        Returns:
-            Dictionary mapping attack names to adversarial samples DataFrames.
-        """
+        
         if not self.is_enabled():
             return {}
 
@@ -60,6 +59,8 @@ class AdversarialGenerator:
             return {}
 
         for attack, attack_cfg in loaded_plugins:
+            if only_plugin is not None and attack_cfg.plugin != only_plugin:
+                continue
             try:
                 model_to_attack = underlying_model
                 model_type_to_use = model_type
@@ -84,7 +85,8 @@ class AdversarialGenerator:
                     model_to_attack = ids_model
                     model_type_to_use = "ids_connector"
 
-                params = attack_cfg.params or {}
+                # override the eps values if specified in config
+                params = {**(attack_cfg.params or {}), **(override_params or {})}
                 if self._surrogate_nb_classes is not None and model_type_to_use == "tensorflow":
                     params["nb_classes"] = self._surrogate_nb_classes
                 else:

@@ -20,14 +20,14 @@ run_config/             # All files needed to evaluate
 | Kitsune | [[2]](https://arxiv.org/abs/1802.09089) (Pre-Print) |
 | Tree Based IDS | [[3]](https://ieeexplore.ieee.org/document/9013892) |
 
-## Decision Tree 
+## Decision Tree
 The DT is used as a baseline for the other models mentioned.
 
 ## Deep Neural Network
-We modeled the deep neural network architecture after the design by Vigneswaran et al. [[1]](https://ieeexplore.ieee.org/document/8494096). 
+We modeled the deep neural network architecture after the design by Vigneswaran et al. [[1]](https://ieeexplore.ieee.org/document/8494096).
 In the original paper, the ML-based IDS was evaluated on the KDD Cup 99 dataset.
 
-## Kitsune 
+## Kitsune
 Kitsune is an autoencoder-based unsupervised online learning IDS developed by Mirsky
 et al. [[2]](https://arxiv.org/abs/1802.09089).
 

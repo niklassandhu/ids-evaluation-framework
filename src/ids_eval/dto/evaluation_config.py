@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from ids_eval.dto.adversarial_config import AdversarialAttacksConfig
 from ids_eval.dto.metric_config import MetricPluginConfig
+from ids_eval.dto.robustness_config import RobustnessConfig
 
 
 class SignatureModelConfig(BaseModel):
@@ -50,6 +51,11 @@ class EvaluationConfig(BaseModel):
         default=None,
         description="Configuration for adversarial attack evaluation. "
         "If enabled, models will be tested against adversarial samples.",
+    )
+
+    robustness: RobustnessConfig | None = Field(
+        default=None,
+        description="Configuration for robustness sweep evaluation."
     )
 
     @model_validator(mode="after")

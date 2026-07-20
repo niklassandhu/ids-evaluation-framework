@@ -10,6 +10,8 @@ $RECYCLE.BIN/
 
 # Project related
 .venv/
+build/
+dist/
 *.egg-info/
 examples/run_config/raw_data/*
 logs/*

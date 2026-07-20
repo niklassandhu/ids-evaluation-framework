@@ -21,3 +21,7 @@ class AdversarialAttacksConfig(BaseModel):
         default=True, description="Use surrogate models for non-differentiable classifiers (tree-based)"
     )
     surrogate_epochs: int = Field(default=50, description="Number of epochs to train surrogate model")
+    eps_values: list[float] = Field(
+        default=[0.001, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3],
+        description="eps_values (max 0.3 magnitude)"
+    )

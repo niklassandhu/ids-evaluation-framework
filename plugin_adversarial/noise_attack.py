@@ -25,7 +25,8 @@ class NoiseAttack(AbstractAdversarialAttack):
     def _attack_deploy(
         self, model: Any | None, model_type: str, params: dict[str, Any], scaler: Any | None = None
     ) -> None:
-        self.std = params.get("std", 0.1)
+        #robustness sweep overrides the perturbation magnitude via "eps"
+        self.std = params.get("eps", params.get("std", 0.1))
         self.clip_min = params.get("clip_min", 0.0)
         self.clip_max = params.get("clip_max", 1.0)
         self.seed = params.get("seed", None)

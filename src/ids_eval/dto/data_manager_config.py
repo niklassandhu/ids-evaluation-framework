@@ -13,7 +13,8 @@ from ids_eval.dto.split_timestamp_config import SplitTimestampConfig
 from ids_eval.enumeration.feature_selection_method import FeatureSelectionMethod
 from ids_eval.enumeration.preprocess_method import PreprocessMethod
 from ids_eval.enumeration.split_method import SplitMethod
-
+from ids_eval.dto.nfstream_config import NFStreamConfig
+from ids_eval.dto.label_config import TimeWindow
 
 class SubfileConfig(BaseModel):
     """Configuration for a single subfile within a dataset."""
@@ -138,9 +139,11 @@ class SplitConfig(BaseModel):
 
 class DatasetConfig(BaseModel):
     name: str = Field(..., description="Display name for this dataset")
+    nfstream: NFStreamConfig = Field(default_factory=NFStreamConfig)
     constructor: ConstructorConfig
     preprocess: list[PreprocessConfig] = Field(default_factory=list, description="List of preprocessing steps.")
     feature_selector: FeatureSelectorConfig
+    windows: list[TimeWindow] = Field(default_factory=list)
 
 
 class DataManagerConfig(BaseModel):

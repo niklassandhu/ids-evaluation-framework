@@ -38,18 +38,41 @@ class FgsmAttack(AbstractAdversarialAttack):
         self.clip_max = params.get("clip_max", 1.0)
         self.scaler = scaler
 
-        self.art_classifier = self._create_art_classifier(model, model_type, params)
+        if self.eps <= 0:
+            raise ValueError(
+                "FGSM requires eps > 0. "
+                "Do not generate adversarial samples with epsilon=0. "
+                "Compute clean accuracy separately and add it as "
+                "the epsilon=0 point in the robustness curve."
+            )
+
+        eps_step = params.get("eps_step", self.eps)
+
+        # requires eps_step > 0
+        if eps_step <= 0:
+            raise ValueError(
+                "FGSM requires eps_step > 0."
+            )
+
+        self.art_classifier = self._create_art_classifier(
+            model,
+            model_type,
+            params,
+        )
 
         self.attack = FastGradientMethod(
             estimator=self.art_classifier,
             eps=self.eps,
-            eps_step=params.get("eps_step", self.eps),
+            eps_step=eps_step,
             targeted=params.get("targeted", False),
             num_random_init=params.get("num_random_init", 0),
             batch_size=params.get("batch_size", 32),
         )
 
-        self.logger.info(f"Initialized FGSM attack with eps={self.eps}")
+        self.logger.info(
+            f"Initialized FGSM attack with eps={self.eps}, "
+            f"eps_step={eps_step}"
+        )
 
     def _create_art_classifier(
         self,
@@ -78,6 +101,20 @@ class FgsmAttack(AbstractAdversarialAttack):
             input_shape = params.get("input_shape", (params.get("nb_classes", 2),))
 
         nb_classes = params.get("nb_classes", 2)
+
+        #ART expects one probability column per class
+        out_units = None
+        if hasattr(model, "output_shape") and model.output_shape is not None:
+            out_units = model.output_shape[-1]
+
+        if out_units == 1:
+            p = model.outputs[0]  # (batch, 1) sigmoid probability P(class 1)
+            two_col = tf.keras.layers.Concatenate(axis=-1)([1.0 - p, p])
+            model = tf.keras.Model(inputs=model.inputs, outputs=two_col)
+            self.logger.info(
+                "FGSM: wrapped single-sigmoid model to 2-column [1-p, p] output for correct gradients"
+            )
+
         loss_object = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
 
         classifier = TensorFlowV2Classifier(

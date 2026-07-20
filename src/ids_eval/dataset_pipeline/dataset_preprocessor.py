@@ -97,7 +97,6 @@ class DatasetPreprocessor:
                         raise ValueError(f"Unsupported normalization method {method}")
 
             preprocessed_datasets.append(processed_df)
-
         self.logger.info("All datasets have been preprocessed.")
         return preprocessed_datasets
 
