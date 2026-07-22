@@ -1,8 +1,9 @@
 name: CI
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Tag version from pyproject.toml"]
+    types: [completed]
+
 
 jobs:
     test:
@@ -29,6 +30,9 @@ jobs:
             id-token: write
         steps:
             - uses: actions/checkout@v4
+              with:
+                # Check out the commit that triggered the workflow_run
+                ref: ${{ github.event.workflow_run.head_sha }}
 
             - name: Install uv
               uses: astral-sh/setup-uv@v6
