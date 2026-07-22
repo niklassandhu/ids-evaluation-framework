@@ -1,6 +1,6 @@
 [project]
 name = "ids-evaluation-framework"
-version = "0.5.0"
+version = "0.5.1"
 description = "A framework for evaluating intrusion detection systems for IoT botnets."
 authors = [
     { name = "Jan Schröder", email = "schroeder.jan@protonmail.com" },
